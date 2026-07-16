@@ -8,7 +8,7 @@ author: "Redação kidsfestivalsp.com.br"
 reviewedProducts:
   - id: "squier-affinity-strat"
     title: "Guitarra Squier Affinity Stratocaster Fender"
-    image: "https://m.media-amazon.com/images/I/51-mF7n5DGL._AC_SL1000_.jpg"
+    image: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?q=80&w=400"
     rating: 4.8
     reviewsCount: "320"
     amazonLink: "https://www.amazon.com.br/dp/B097RVFSHC?tag=kidsfestivalsp-20"

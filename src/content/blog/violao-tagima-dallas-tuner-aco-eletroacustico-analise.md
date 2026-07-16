@@ -8,7 +8,7 @@ author: "Redação kidsfestivalsp.com.br"
 reviewedProducts:
   - id: "tagima-dallas-tuner"
     title: "Violão Tagima Dallas Tuner Aço Eletroacústico"
-    image: "https://m.media-amazon.com/images/I/61jCtfJkC5L._AC_SL1500_.jpg"
+    image: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=400"
     rating: 4.6
     reviewsCount: "150"
     amazonLink: "https://www.amazon.com.br/dp/B0777P9Q5S?tag=kidsfestivalsp-20"
