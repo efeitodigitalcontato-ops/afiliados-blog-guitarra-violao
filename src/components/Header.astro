@@ -1,0 +1,117 @@
+---
+---
+
+<header class="site-header">
+  <div class="header-container">
+    <a href="/" class="logo-area" title="Guitarra & Violão">
+      <div class="logo-icon">
+        <!-- Ícone de Guitarra/Música -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 18V5l12-2v13" />
+          <circle cx="6" cy="18" r="3" fill="var(--primary-color)" />
+          <circle cx="18" cy="16" r="3" fill="var(--primary-color)" />
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-title">GUITARRA & VIOLÃO</span>
+        <span class="logo-subtitle">análises e resenhas</span>
+      </div>
+    </a>
+    
+    <div class="header-tagline">
+      <h1>KidsFestivalSP - Review de Instrumentos</h1>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    background-color: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.2);
+  }
+
+  .header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none !important;
+  }
+
+  .logo-icon {
+    width: 48px;
+    height: 48px;
+    background-color: rgba(234, 88, 12, 0.1);
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: transform 0.3s ease;
+  }
+
+  .logo-area:hover .logo-icon {
+    transform: rotate(-5deg) scale(1.05);
+  }
+
+  .logo-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .logo-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .logo-title {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    letter-spacing: 0.05em;
+    line-height: 1.1;
+  }
+
+  .logo-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+
+  .header-tagline h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  @media (max-width: 768px) {
+    .header-container {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 0.75rem 1rem;
+    }
+    
+    .header-tagline h1 {
+      text-align: center;
+      font-size: 0.95rem;
+    }
+  }
+</style>

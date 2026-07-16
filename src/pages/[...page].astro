@@ -1,0 +1,585 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths({ paginate }) {
+  const posts = await getCollection('blog');
+  // Ordenar por data de publicação (mais recentes primeiro)
+  const sortedPosts = posts.sort((a, b) => new Date(b.data.pubDate).getTime() - new Date(a.data.pubDate).getTime());
+  return paginate(sortedPosts, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+
+// Identificar se é a primeira página
+const isFirstPage = page.currentPage === 1;
+
+// Post em destaque na primeira página
+const heroPost = isFirstPage ? page.data[0] : null;
+// Posts da grade
+const gridPosts = isFirstPage ? page.data.slice(1) : page.data;
+---
+
+<Layout title={`Análises de Guitarra & Violão - Página {page.currentPage}`} description="O guia definitivo para guitarristas e violonistas. Encontre resenhas de instrumentos, pedais de efeito, amplificadores e acessórios musicais." preloadImage={heroPost?.data?.heroImage}>
+  <div class="home-container">
+    {isFirstPage && (
+      <div class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <h2>Encontre o Equipamento Perfeito para o Seu Som</h2>
+          <p>Análises detalhadas, comparativos e guias de compra escritos por quem entende de música. Escolha sua próxima guitarra, violão, pedal ou amplificador.</p>
+        </div>
+        
+        <!-- Search bar overlapping the hero card -->
+        <div class="search-bar-container">
+          <div class="search-field">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="searchInput" placeholder="O que você está procurando? (ex: Squier, Tagima...)" />
+          </div>
+          <div class="search-field">
+            <select id="typeSelect">
+              <option value="">Tipo de Instrumento</option>
+              <option value="guitarra-eletrica">Guitarra Elétrica</option>
+              <option value="violao-aco">Violão Aço</option>
+              <option value="violao-nylon">Violão Nylon</option>
+              <option value="pedais-e-efeitos">Pedais & Efeitos</option>
+              <option value="amplificadores">Amplificadores</option>
+              <option value="acessorios">Acessórios</option>
+            </select>
+          </div>
+          <button class="btn search-btn" id="searchButton">Buscar</button>
+        </div>
+      </div>
+    )}
+
+    <div class="section-header">
+      <h2>{isFirstPage ? "Últimas Análises e Avaliações" : `Página ${page.currentPage}`}</h2>
+    </div>
+
+    {page.data.length > 0 ? (
+      <div class="posts-layout">
+        <!-- Post em Destaque (Hero) - Apenas na primeira página -->
+        {isFirstPage && heroPost && (
+          <article class="hero-post-card post-item-card" data-title={heroPost.data.title.toLowerCase()} data-category={heroPost.data.category || ''}>
+            {heroPost.data.heroImage && (
+              <div class="hero-img-box">
+                <img src={heroPost.data.heroImage} alt={heroPost.data.title} width="600" height="340" fetchpriority="high" loading="eager" decoding="async" />
+              </div>
+            )}
+            <div class="hero-content-box">
+              <span class="post-category">{heroPost.data.category || 'resenha'}</span>
+              <h2 class="hero-title">
+                <a href={`/${heroPost.slug}`}>{heroPost.data.title}</a>
+              </h2>
+              <p class="hero-desc">{heroPost.data.description}</p>
+              <div class="hero-meta">
+                <span class="meta-author">Por {heroPost.data.author || 'Equipe Editorial'}</span>
+                <span class="meta-separator">&bull;</span>
+                <span class="meta-date">
+                  {new Date(heroPost.data.pubDate).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                  })}
+                </span>
+              </div>
+              <a href={`/${heroPost.slug}`} class="btn read-more-btn">Ler Análise Completa</a>
+            </div>
+          </article>
+        )}
+
+        <!-- Grid de posts -->
+        <div class="posts-grid">
+          {gridPosts.map(post => (
+            <article class="post-card post-item-card" data-title={post.data.title.toLowerCase()} data-category={post.data.category || ''}>
+              {post.data.heroImage && (
+                <div class="card-img-box">
+                  <a href={`/${post.slug}`}>
+                    <img src={post.data.heroImage} alt={post.data.title} loading="lazy" width="360" height="203" decoding="async" />
+                  </a>
+                </div>
+              )}
+              <div class="card-content-box">
+                <span class="post-category">{post.data.category || 'resenha'}</span>
+                <h3 class="card-title">
+                  <a href={`/${post.slug}`}>{post.data.title}</a>
+                </h3>
+                <p class="card-desc">{post.data.description}</p>
+                <div class="card-meta">
+                  <span>
+                    {new Date(post.data.pubDate).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div class="no-results-message" style="display: none;">
+          <p>Nenhum equipamento corresponde aos filtros aplicados.</p>
+          <button class="btn" id="clearFiltersBtn">Limpar Filtros</button>
+        </div>
+
+        <!-- Controles de Paginação -->
+        {(page.url.prev || page.url.next) && (
+          <nav class="pagination-nav" aria-label="Navegação de páginas">
+            {page.url.prev ? (
+              <a href={page.url.prev} class="pagination-btn prev-btn">&larr; Anterior</a>
+            ) : (
+              <span class="pagination-btn disabled">&larr; Anterior</span>
+            )}
+            
+            <span class="pagination-indicator">
+              Página <strong>{page.currentPage}</strong> de <strong>{page.lastPage}</strong>
+            </span>
+            
+            {page.url.next ? (
+              <a href={page.url.next} class="pagination-btn next-btn">Próximo &rarr;</a>
+            ) : (
+              <span class="pagination-btn disabled">Próximo &rarr;</span>
+            )}
+          </nav>
+        )}
+      </div>
+    ) : (
+      <div class="no-posts">
+        <p>Nenhum artigo publicado no momento.</p>
+        <a href="/" class="btn">Voltar para a Home</a>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('searchInput');
+    const typeSelect = document.getElementById('typeSelect');
+    const searchBtn = document.getElementById('searchButton');
+    const clearFiltersBtn = document.getElementById('clearFiltersBtn');
+    const postCards = document.querySelectorAll('.post-item-card');
+    const noResultsMessage = document.querySelector('.no-results-message');
+    const paginationNav = document.querySelector('.pagination-nav');
+
+    function filterPosts() {
+      const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : '';
+      const typeVal = typeSelect ? typeSelect.value : '';
+
+      let visibleCount = 0;
+
+      postCards.forEach(card => {
+        const title = card.getAttribute('data-title') || '';
+        const category = card.getAttribute('data-category') || '';
+
+        const matchesSearch = !searchVal || title.includes(searchVal);
+        const matchesType = !typeVal || category === typeVal;
+
+        if (matchesSearch && matchesType) {
+          card.style.display = '';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (visibleCount === 0) {
+        if (noResultsMessage) noResultsMessage.style.display = 'block';
+        if (paginationNav) paginationNav.style.display = 'none';
+      } else {
+        if (noResultsMessage) noResultsMessage.style.display = 'none';
+        if (paginationNav) paginationNav.style.display = '';
+      }
+    }
+
+    if (searchBtn) searchBtn.addEventListener('click', filterPosts);
+    if (searchInput) searchInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') filterPosts();
+    });
+    if (typeSelect) typeSelect.addEventListener('change', filterPosts);
+    if (clearFiltersBtn) {
+      clearFiltersBtn.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (typeSelect) typeSelect.value = '';
+        filterPosts();
+      });
+    }
+  });
+</script>
+
+<style>
+  .home-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    background-image: linear-gradient(rgba(11, 15, 25, 0.6), rgba(11, 15, 25, 0.95)), url('https://images.unsplash.com/photo-1510915361894-db8b60106cb1?q=80&w=1200&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    border-radius: 1rem;
+    padding: 5rem 2rem 7rem 2rem;
+    text-align: center;
+    color: var(--text-main);
+    box-shadow: var(--shadow-md);
+    overflow: visible;
+  }
+
+  .hero-content {
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-section h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+
+  .hero-content p {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    line-height: 1.6;
+  }
+
+  /* Search Bar */
+  .search-bar-container {
+    position: absolute;
+    bottom: -2.5rem;
+    left: 5%;
+    width: 90%;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.5);
+    z-index: 10;
+  }
+
+  @media (min-width: 768px) {
+    .search-bar-container {
+      grid-template-columns: 2fr 1fr auto;
+      gap: 1rem;
+      left: 10%;
+      width: 80%;
+      padding: 1rem;
+      bottom: -2rem;
+    }
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .search-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    margin-right: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .search-field input, .search-field select {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-main);
+    width: 100%;
+    font-size: 0.95rem;
+    font-family: inherit;
+  }
+
+  .search-field select option {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+  }
+
+  .search-btn {
+    font-size: 0.95rem;
+    padding: 0.65rem 2rem;
+  }
+
+  .section-header {
+    margin-top: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  /* Layout de Posts */
+  .posts-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  /* Hero Card */
+  .hero-post-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-subtle);
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  @media (min-width: 768px) {
+    .hero-post-card {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+
+  .hero-img-box {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+  }
+
+  .hero-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-content-box {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .post-category {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background-color: rgba(234, 88, 12, 0.15);
+    color: var(--primary-color);
+    padding: 0.25rem 0.65rem;
+    border-radius: 0.25rem;
+    margin-bottom: 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-title a {
+    color: var(--text-main);
+    text-decoration: none;
+  }
+
+  .hero-title a:hover {
+    color: var(--primary-color);
+  }
+
+  .hero-desc {
+    color: var(--text-muted);
+    font-size: 1.05rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+  }
+
+  .hero-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .read-more-btn {
+    font-size: 0.95rem;
+  }
+
+  /* Grid de Posts Secundários */
+  .posts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+
+  @media (min-width: 768px) {
+    .posts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  .post-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-subtle);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .post-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-img-box {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+  }
+
+  .card-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .post-card:hover .card-img-box img {
+    transform: scale(1.03);
+  }
+
+  .card-content-box {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+    margin: 0.5rem 0 0.75rem 0;
+    line-height: 1.4;
+  }
+
+  .card-title a {
+    color: var(--text-main);
+    text-decoration: none;
+  }
+
+  .card-title a:hover {
+    color: var(--primary-color);
+  }
+
+  .card-desc {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-meta {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: auto;
+  }
+
+  .no-posts {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .no-posts p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+  }
+
+  .no-results-message {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 3rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .no-results-message p {
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+
+  /* Paginação */
+  .pagination-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 3rem;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-subtle);
+  }
+
+  .pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-btn:hover:not(.disabled) {
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    text-decoration: none;
+  }
+
+  .pagination-btn.disabled {
+    color: var(--text-muted);
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-color);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .pagination-indicator {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .pagination-indicator strong {
+    color: var(--text-main);
+  }
+</style>
